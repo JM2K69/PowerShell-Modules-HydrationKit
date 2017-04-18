@@ -23,7 +23,6 @@
 #>
 
 
-
 function Receive-ToolsBitsFile
 {
 	param ([string]$DownLoadUrl,
@@ -424,7 +423,7 @@ function Receive-SCCM
 				   ConfirmImpact = "Medium")]
 	[OutputType([psobject])]
 	param (
-		[ValidateSet('1511','1606','TP1703')]
+		[ValidateSet('1511','1606','1702')]
 		$SCCMVersions,
 		[ValidateSet('C:\HydrationCM\Source\Downloads')]
 		[String]$Destination,
@@ -435,7 +434,7 @@ function Receive-SCCM
 	)
 	$SCCM1511 = "http://care.dlservice.microsoft.com/dl/download/E/F/3/EF388C92-F307-42B7-989F-FF4DA328B328/SC_Configmgr_1511.exe"
 	$SCCM1606 = "http://care.dlservice.microsoft.com/dl/download/F/B/9/FB9B10A3-4517-4E03-87E6-8949551BC313/SC_Configmgr_SCEP_1606.exe"
-	$SCCM1703 = "http://care.dlservice.microsoft.com/dl/download/9/1/5/915801E2-84EF-4445-BFF1-3A64FC2EF303/SC_Configmgr_SCEP_TechPreview1703.exe"
+	$SCCM1702 = "http://care.dlservice.microsoft.com/dl/download/C/A/0/CA0CAE64-358C-49EC-9F61-8FACFEDE7083/SC_Configmgr_SCEP_1702.exe"
 	$Product_Dir = Join-Path $Destination $Product_Dir
 	Write-Verbose "Destination: $Product_Dir"
 	if (!(Test-Path $Product_Dir))
@@ -504,13 +503,13 @@ function Receive-SCCM
 			}
 			
 		}
-		"TP1703"
+		"1702"
 		{
 			$SCCM_BASEVER = $SCCMVersions
 			$SCCM_BASEDir = Join-Path $Product_Dir $SCCM_BASEVER
-			if (!(Test-Path "$SCCM_BASEVER\TP1703\SC_Configmgr_SCEP_TechPreview1703.exe"))
+			if (!(Test-Path "$SCCM_BASEVER\1702\SC_Configmgr_SCEP_1702.exe"))
 			{
-				foreach ($url in ($SCCM1703))
+				foreach ($url in ($SCCM1702))
 				{
 					$FileName = Split-Path -Leaf -Path $Url
 					Write-Verbose "Testing $FileName in $SCCM_BASEDir"
@@ -533,14 +532,14 @@ function Receive-SCCM
 	Show-BalloonTip -Text "$SCCMVersions is now available in $SCCM_BASEDir" -Icon Info -Timeout 10 -Title "Download Finish"
 }
 
-function Receive-SRV2012R2
+function Receive-ServerEval
 {
 	[CmdletBinding(DefaultParametersetName = "1",
 				   SupportsShouldProcess = $true,
 				   ConfirmImpact = "Medium")]
 	[OutputType([psobject])]
 	param (
-		[ValidateSet('2012R2EVAL')]
+		[ValidateSet('2012R2EVAL','2016EVAL')]
 		$OSVersions,
 		[ValidateSet('C:\HydrationCM\Source\Downloads')]
 		[String]$Destination,
@@ -550,7 +549,7 @@ function Receive-SRV2012R2
 		[switch]$force
 	)
 	$OSFile = "http://care.dlservice.microsoft.com/dl/download/F/D/2/FD241849-F219-40ED-B65C-64D274A6B46F/9600.17050.WINBLUE_REFRESH.140317-1640_X64FRE_SERVER_EVAL_FR-FR-IR3_SSS_X64FREE_FR-FR_DV9.ISO"
-	
+	$OSFile2 = "http://care.dlservice.microsoft.com/dl/download/5/A/2/5A2C8AEF-EDD8-4025-801B-C7171FAF761D/14393.0.161119-1705.RS1_REFRESH_SERVER_EVAL_X64FRE_FR-FR.ISO"
 	$Product_Dir = Join-Path $Destination $Product_Dir
 	Write-Verbose "Destination: $Product_Dir"
 	if (!(Test-Path $Product_Dir))
@@ -596,6 +595,31 @@ function Receive-SRV2012R2
 			
 		}
 		
+		"2016EVAL"
+		{
+			$OS_BASEVER = $OSVersions
+			$OS_BASEDir = Join-Path $Product_Dir $OS_BASEVER
+			if (!(Test-Path "$SCCM_BASEVER\2016EVAL\14393.0.161119-1705.RS1_REFRESH_SERVER_EVAL_X64FRE_FR-FR.ISO"))
+			{
+				foreach ($url in ($OSFile))
+				{
+					$FileName = Split-Path -Leaf -Path $Url
+					Write-Verbose "Testing $FileName in $OS_BASEDir"
+					if (!(test-path  "$OS_BASEDir\$FileName"))
+					{
+						Show-BalloonTip -Text " Trying Download Windows Server 2016 EVAL" -Icon Info -Timeout 10 -Title "Downloading..."
+						if (!(Receive-ToolsBitsFile -DownLoadUrl $URL -destination "$OS_BASEDir\$FileName"))
+						{
+							Show-BalloonTip -Text " Error Donwloading File $url , Please check connectivity" -Icon Error -Timeout 10 -Title "Downloading..."
+							exit
+						}
+						Unblock-File "$OS_BASEDir\$FileName"
+					}
+				}
+			}
+			
+		}
+		
 		
 	} #end switch
 	Show-BalloonTip -Text "$OSVersions is now available in $OS_BASEDir" -Icon Info -Timeout 10 -Title "Download Finish"
@@ -608,7 +632,7 @@ function Receive-WindowsClient_Eval
 				   ConfirmImpact = "Medium")]
 	[OutputType([psobject])]
 	param (
-		[ValidateSet('Win10LSTBEVAL', 'Win101511EVAL','Win81EntFR')]
+		[ValidateSet('Win10LSTBEVAL', 'Win101511EVAL','Win81EntFR','Win101703EVAL','Win10_2016LSTB')]
 		$OSVersions,
 		[ValidateSet('C:\HydrationCM\Source\Downloads')]
 		[String]$Destination,
@@ -620,6 +644,8 @@ function Receive-WindowsClient_Eval
 	$OSFile = "http://care.dlservice.microsoft.com/dl/download/6/2/4/62401377-7CCD-4AB9-B31F-D60C3CC38257/10240.16384.150709-1700.TH1_CLIENTENTERPRISE_S_EVAL_X64FRE_FR-FR.ISO"
 	$OSfile1 = "http://care.dlservice.microsoft.com/dl/download/8/5/C/85CA9FB3-CC7F-44FD-A352-EF960FC181AD/10586.0.151029-1700.TH2_RELEASE_CLIENTENTERPRISEEVAL_OEMRET_X64FRE_FR-FR.ISO"
 	$OSFileWin81 = "http://care.dlservice.microsoft.com/dl/download/5/A/9/5A96D549-F597-4156-B55B-CF38BC18C2D6/9600.17050.WINBLUE_REFRESH.140317-1640_X64FRE_ENTERPRISE_EVAL_FR-FR-IR3_CENA_X64FREE_FR-FR_DV9.ISO"
+	$OSFileWin101703 = "http://care.dlservice.microsoft.com/dl/download/9/8/9/9897856A-6CDC-4A59-890E-41E525296AE9/15063.0.170317-1834.RS2_RELEASE_CLIENTENTERPRISEEVAL_OEMRET_X64FRE_FR-FR.ISO"
+	$OSFileWin10_LSTB = "http://care.dlservice.microsoft.com/dl/download/F/6/0/F60A7AE9-1E71-460B-A6ED-7DFA2F927924/14393.0.160715-1616.RS1_RELEASE_CLIENTENTERPRISE_S_EVAL_X64FRE_FR-FR.ISO"
 	$Product_Dir = Join-Path $Destination $Product_Dir
 	Write-Verbose "Destination: $Product_Dir"
 	if (!(Test-Path $Product_Dir))
@@ -713,7 +739,7 @@ function Receive-WindowsClient_Eval
 							exit
 						}
 						Unblock-File "$OS_BASEDir\$FileName"
-						Show-BalloonTip -Text "Windows Windows 10 1511 is now available in $OS_BASEDir" -Icon Info -Timeout 10 -Title "Downloading..."
+						Show-BalloonTip -Text "Windows Windows 8.1 Entreprise is now available in $OS_BASEDir" -Icon Info -Timeout 10 -Title "Downloading..."
 						
 					}
 				}
@@ -721,9 +747,63 @@ function Receive-WindowsClient_Eval
 			
 		}
 		
+		"Win101703EVAL"
+		{
+			$OS_BASEVER = $OSVersions
+			$OS_BASEDir = Join-Path $Product_Dir $OS_BASEVER
+			if (!(Test-Path "$OS_BASEVER\Win101703EVAL\15063.0.170317-1834.RS2_RELEASE_CLIENTENTERPRISEEVAL_OEMRET_X64FRE_FR-FR.ISO"))
+			{
+				foreach ($url in ($OSFileWin101703))
+				{
+					$FileName = Split-Path -Leaf -Path $Url
+					Write-Verbose "Testing $FileName in $OS_BASEDir"
+					if (!(test-path  "$OS_BASEDir\$FileName"))
+					{
+						Show-BalloonTip -Text " Trying Download Windows Windows 10 1703 Entreprise" -Icon Info -Timeout 10 -Title "Downloading..."
+						if (!(Receive-ToolsBitsFile -DownLoadUrl $URL -destination "$OS_BASEDir\$FileName"))
+						{
+							Show-BalloonTip -Text " Error Donwloading File $url , Please check connectivity" -Icon Error -Timeout 10 -Title "Downloading..."
+							exit
+						}
+						Unblock-File "$OS_BASEDir\$FileName"
+						Show-BalloonTip -Text "Windows Windows 10 1703 is now available in $OS_BASEDir" -Icon Info -Timeout 10 -Title "Downloading..."
+						
+					}
+				}
+			}
+			
+		}
+		
+		"Win10_2016LSTB"
+		{
+			$OS_BASEVER = $OSVersions
+			$OS_BASEDir = Join-Path $Product_Dir $OS_BASEVER
+			if (!(Test-Path "$OS_BASEVER\Win10_2016LSTB\14393.0.160715-1616.RS1_RELEASE_CLIENTENTERPRISE_S_EVAL_X64FRE_FR-FR.ISO"))
+			{
+				foreach ($url in ($OSFileWin10_LSTB))
+				{
+					$FileName = Split-Path -Leaf -Path $Url
+					Write-Verbose "Testing $FileName in $OS_BASEDir"
+					if (!(test-path  "$OS_BASEDir\$FileName"))
+					{
+						Show-BalloonTip -Text " Trying Download Windows Windows 10 2016 LSTB Entreprise" -Icon Info -Timeout 10 -Title "Downloading..."
+						if (!(Receive-ToolsBitsFile -DownLoadUrl $URL -destination "$OS_BASEDir\$FileName"))
+						{
+							Show-BalloonTip -Text " Error Donwloading File $url , Please check connectivity" -Icon Error -Timeout 10 -Title "Downloading..."
+							exit
+						}
+						Unblock-File "$OS_BASEDir\$FileName"
+						Show-BalloonTip -Text "Windows Windows 10 2016 LSTB is now available in $OS_BASEDir" -Icon Info -Timeout 10 -Title "Downloading..."
+						
+					}
+				}
+			}
+			
+		}
+		
+		
 	} #end switch
 }
-
 
 function Receive-BGinfo
 {
